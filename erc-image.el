@@ -91,6 +91,10 @@ If several regex match prior occurring have higher priority."
           (const :tag "Scale down to window-size" window)
           (integer :tag "Scale down to specific value")))
 
+(defcustom erc-image-inline-rescale-window-scale 0.8
+  "Rescale the image when erc-image-inline-rescale is window so
+ that when scaled down it leaves a little margin from the edge."
+  :group 'erc-image)
 
 (when (version< emacs-version "24.4")
   (fset 'image-multi-frame-p 'image-animated-p))
@@ -170,30 +174,32 @@ If several regex match prior occurring have higher priority."
       ;; No rescale
       image)))
 
-(defun erc-image--maybe-rescale (image file-name dimensions height width)
-"Rescale FILE-NAME to have max DIMENSIONS of HEIGHT or WIDTH, or return IMAGE.
+(use-package erc-image
+  :after erc
+  :preface 
+  (defun erc-image--maybe-rescale (image file-name dimensions height width)
+    "Rescale FILE-NAME to have max DIMENSIONS of HEIGHT or WIDTH, or return IMAGE.
 Helper function for erc-image-create-image."
-  (let ((imagemagick-p (and (fboundp 'imagemagick-types) 'imagemagick)))
+    (let ((imagemagick-p (and (fboundp 'imagemagick-types) 'imagemagick)))
 
-    (if (or (> (car dimensions) width)
-            (> (cdr dimensions) height))
-        ;; Figure out in which direction we need to scale
-        (if (> (cdr dimensions) (car dimensions))
-            (create-image file-name imagemagick-p nil :height height)
-          (create-image file-name imagemagick-p nil :width width))
-      ;; Image is smaller than erc-image-inline-rescale, just give that back
-      image)))
-
-(defun erc-image-show-url-image (url)
-  (when (and url (display-graphic-p))
-    (let ((file-name (expand-file-name (md5 url) erc-image-images-path)))
-      (goto-char (point-max))
-      (url-queue-retrieve url
-                          erc-image-display-func
-                          (list
-                           file-name
-                           (point-marker))
-                          t))))
+      (if (or (> (car dimensions) width)
+              (> (cdr dimensions) height))
+          ;; Figure out in which direction we need to scale
+	  (let* ((height-ratio (/ (float height) (cdr dimensions)))
+		 (width-ratio (/ (float width) (car dimensions)))
+		 (extra-shrink-ratio 0.80)
+		 (smaller-ratio (if (> width-ratio height-ratio)
+				    height-ratio
+				  width-ratio)))
+		 (create-image file-name imagemagick-p nil
+			       :scale (* smaller-ratio extra-shrink-ratio)))
+	;; Image is smaller than erc-image-inline-rescale, just give that back
+	image)))
+  :config
+  (add-to-list 'erc-modules 'image)
+  (erc-update-modules)
+  :custom
+  (erc-image-inline-rescale 'window))
 
 (defun erc-image-show-url ()
   "Calls the proper function to process an URL"
