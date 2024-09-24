@@ -174,32 +174,24 @@ If several regex match prior occurring have higher priority."
       ;; No rescale
       image)))
 
-(use-package erc-image
-  :after erc
-  :preface 
-  (defun erc-image--maybe-rescale (image file-name dimensions height width)
-    "Rescale FILE-NAME to have max DIMENSIONS of HEIGHT or WIDTH, or return IMAGE.
+(defun erc-image--maybe-rescale (image file-name dimensions height width)
+  "Rescale FILE-NAME to have max DIMENSIONS of HEIGHT or WIDTH, or return IMAGE.
 Helper function for erc-image-create-image."
-    (let ((imagemagick-p (and (fboundp 'imagemagick-types) 'imagemagick)))
+  (let ((imagemagick-p (and (fboundp 'imagemagick-types) 'imagemagick)))
 
-      (if (or (> (car dimensions) width)
-              (> (cdr dimensions) height))
-          ;; Figure out in which direction we need to scale
-	  (let* ((height-ratio (/ (float height) (cdr dimensions)))
-		 (width-ratio (/ (float width) (car dimensions)))
-		 (extra-shrink-ratio 0.80)
-		 (smaller-ratio (if (> width-ratio height-ratio)
-				    height-ratio
-				  width-ratio)))
-		 (create-image file-name imagemagick-p nil
-			       :scale (* smaller-ratio extra-shrink-ratio)))
-	;; Image is smaller than erc-image-inline-rescale, just give that back
-	image)))
-  :config
-  (add-to-list 'erc-modules 'image)
-  (erc-update-modules)
-  :custom
-  (erc-image-inline-rescale 'window))
+    (if (or (> (car dimensions) width)
+            (> (cdr dimensions) height))
+        ;; Figure out in which direction we need to scale
+	(let* ((height-ratio (/ (float height) (cdr dimensions)))
+	       (width-ratio (/ (float width) (car dimensions)))
+	       (extra-shrink-ratio 0.80)
+	       (smaller-ratio (if (> width-ratio height-ratio)
+				  height-ratio
+				width-ratio)))
+	  (create-image file-name imagemagick-p nil
+			:scale (* smaller-ratio extra-shrink-ratio)))
+      ;; Image is smaller than erc-image-inline-rescale, just give that back
+      image)))
 
 (defun erc-image-show-url ()
   "Calls the proper function to process an URL"
