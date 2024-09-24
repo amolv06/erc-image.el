@@ -196,6 +196,17 @@ If several regex match prior occurring have higher priority."
       ;; Image is smaller than erc-image-inline-rescale, just give that back
       image)))
 
+(defun erc-image-show-url-image (url)
+  (when (and url (display-graphic-p))
+    (let ((file-name (expand-file-name (md5 url) erc-image-images-path)))
+      (goto-char (point-max))
+      (url-queue-retrieve url
+                          erc-image-display-func
+                          (list
+                           file-name
+                           (point-marker))
+                          t))))
+
 (defun erc-image-show-url ()
   "Calls the proper function to process an URL"
   (goto-char (point-min))
