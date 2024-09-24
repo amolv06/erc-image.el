@@ -175,8 +175,11 @@ If several regex match prior occurring have higher priority."
       image)))
 
 (defun erc-image--maybe-rescale (image file-name dimensions height width)
-  "Rescale FILE-NAME to have max DIMENSIONS of HEIGHT or WIDTH, or return IMAGE.
-Helper function for erc-image-create-image."
+  "Rescale FILE-NAME to fit within the ERC window. If the image
+ size needs to be reduced it is evenly scaled down so that all
+ dimensions fit within the window. Optionally, it can be scaled
+ down further by setting erc-image-inline-rescale-window-scale."
+
   (let ((imagemagick-p (and (fboundp 'imagemagick-types) 'imagemagick)))
 
     (if (or (> (car dimensions) width)
