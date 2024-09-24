@@ -184,7 +184,7 @@ Helper function for erc-image-create-image."
         ;; Figure out in which direction we need to scale
 	(let* ((height-ratio (/ (float height) (cdr dimensions)))
 	       (width-ratio (/ (float width) (car dimensions)))
-	       (extra-shrink-ratio 0.80)
+	       (extra-shrink-ratio erc-image-inline-rescale-window-scale )
 	       (smaller-ratio (if (> width-ratio height-ratio)
 				  height-ratio
 				width-ratio)))
