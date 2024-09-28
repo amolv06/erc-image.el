@@ -144,7 +144,7 @@ If several regex match prior occurring have higher priority."
 (defun erc-image-create-image (file-name)
   "Create an image suitably scaled according to the setting of
 'ERC-IMAGE-RESCALE."
-  (let* ((positions (window-inside-absolute-pixel-edges))
+  (let* ((positions (window-inside-absolute-pixel-edges (get-buffer-window (current-buffer))))
          (width (- (nth 2 positions) (nth 0 positions)))
          (height (- (nth 3 positions) (nth 1 positions)))
          (image (create-image file-name))
