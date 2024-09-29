@@ -141,15 +141,42 @@ If several regex match prior occurring have higher priority."
                 (define-key map (kbd "RET") animate)))
             (put-text-property pt-before (point) 'read-only t)))))))
 
+(defun erc-image--window-dimensions-for-scaling (erc-buffer-window-list image-width image-height)
+  "Given a list of windows displaying the current ERC buffer, return
+the width and height of the window where the image would require
+the most shrinking."
+  (message (format "image height: %s, width: %s" image-height image-width))
+  (let ((shrink-ratio most-positive-fixnum)
+	(width -1)
+	(height -1))
+    (dolist (window erc-buffer-window-list)
+      (let* ((positions (window-inside-absolute-pixel-edges window))
+	     (window-width (- (nth 2 positions) (nth 0 positions)))
+	     (window-height (- (nth 3 positions) (nth 1 positions)))
+	     (cur-shrink-ratio (min (/ (float window-height) image-height)
+				    (/ (float window-width) image-width))))
+	(message (format "Window: %s, width: %s, height: %s, ratio: %s"
+			 window
+			 window-width
+			 window-height
+			 cur-shrink-ratio))
+	(when (> shrink-ratio
+		 cur-shrink-ratio) 
+	  (setq shrink-ratio cur-shrink-ratio
+		width window-width
+		height window-height))))
+    (list width height)))
+
 (defun erc-image-create-image (file-name)
   "Create an image suitably scaled according to the setting of
 'ERC-IMAGE-RESCALE."
-  (let* ((positions (window-inside-absolute-pixel-edges (get-buffer-window (current-buffer))))
-         (width (- (nth 2 positions) (nth 0 positions)))
-         (height (- (nth 3 positions) (nth 1 positions)))
-         (image (create-image file-name))
-         (dimensions (image-size image t)))
-
+  (let* ((image (create-image file-name))
+	 (dimensions (image-size image t))
+	 (window-dimensions (erc-image--window-dimensions-for-scaling (get-buffer-window-list (current-buffer))
+								      (car dimensions)
+								      (cdr dimensions)))
+	 (width (car window-dimensions))
+	 (height (cadr window-dimensions)))
     ;; See if we want to rescale the image
     (if (and (or (fboundp 'imagemagick-types) (version<= "27.1" emacs-version))
              erc-image-inline-rescale
