@@ -145,7 +145,6 @@ If several regex match prior occurring have higher priority."
   "Given a list of windows displaying the current ERC buffer, return
 the width and height of the window where the image would require
 the most shrinking."
-  (message (format "image height: %s, width: %s" image-height image-width))
   (let ((shrink-ratio most-positive-fixnum)
 	(width -1)
 	(height -1))
@@ -155,11 +154,6 @@ the most shrinking."
 	     (window-height (- (nth 3 positions) (nth 1 positions)))
 	     (cur-shrink-ratio (min (/ (float window-height) image-height)
 				    (/ (float window-width) image-width))))
-	(message (format "Window: %s, width: %s, height: %s, ratio: %s"
-			 window
-			 window-width
-			 window-height
-			 cur-shrink-ratio))
 	(when (> shrink-ratio
 		 cur-shrink-ratio) 
 	  (setq shrink-ratio cur-shrink-ratio
@@ -259,3 +253,4 @@ Helper function for erc-image-create-image."
 
 (provide 'erc-image)
 ;;; erc-image.el ends here
+s
